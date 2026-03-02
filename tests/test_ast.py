@@ -1,6 +1,6 @@
 import pytest
-from shell.parser.parse import produce_ast
-from shell.parser.ast import AST, BuiltinCommandNode, ArgumentNode
+
+from shell.parser.ast import AST, ArgumentNode, BuiltinCommandNode
 
 
 def test_equality():

@@ -13,6 +13,7 @@ def test_builtin_command():
 
 
 def test_queue_mechanism():
+    tokens = create_tokens_from_code("ls|select .date|sort desc")
     assert create_tokens_from_code("ls|select .date|sort desc") == [
         Token(TokenType.BUILTIN_COMMAND, stb("ls")),
         Token(TokenType.PIPE, stb("|")),

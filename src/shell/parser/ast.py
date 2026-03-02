@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Self
+from abc import ABC
 from dataclasses import dataclass, field
+from enum import Enum, auto
 
 
 class Node(ABC):
@@ -19,6 +19,11 @@ class Node(ABC):
 
 
 @dataclass
+class ModuleNode(Node):
+    children: list[Node] = field(default_factory=list)
+
+
+@dataclass
 class BuiltinCommandNode(Node):
     command_name: str
     children: list[Node] = field(default_factory=list)
@@ -27,6 +32,13 @@ class BuiltinCommandNode(Node):
 @dataclass
 class ArgumentNode(Node):
     argument_literal: str
+    children: list[Node] = field(default_factory=list)
+
+
+@dataclass
+class PipeNode(Node):
+    input_node: Node
+    output_node: Node
     children: list[Node] = field(default_factory=list)
 
 
