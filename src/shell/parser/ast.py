@@ -34,6 +34,11 @@ class ColumnNode(ArgumentNode):
 
 
 @dataclass
+class StringLiteralNode(ArgumentNode):
+    string_literal: str
+
+
+@dataclass
 class BuiltinCommandNode(Node):
     command_name: str
     arguments: list[ArgumentNode] = field(default_factory=list)

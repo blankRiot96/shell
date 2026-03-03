@@ -1,2 +1,5 @@
+from shell.repl import start_repl_session
+
+
 def run():
-    print("meow")
+    start_repl_session()

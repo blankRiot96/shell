@@ -13,8 +13,20 @@ def test_builtin_command():
 
 
 def test_queue_mechanism():
-    tokens = create_tokens_from_code("ls|select .date|sort desc")
     assert create_tokens_from_code("ls|select .date|sort desc") == [
+        Token(TokenType.BUILTIN_COMMAND, stb("ls")),
+        Token(TokenType.PIPE, stb("|")),
+        Token(TokenType.BUILTIN_COMMAND, stb("select")),
+        Token(TokenType.COLUMN_NAME, stb(".date")),
+        Token(TokenType.PIPE, stb("|")),
+        Token(TokenType.BUILTIN_COMMAND, stb("sort")),
+        Token(TokenType.ARGUMENT, stb("desc")),
+        Token(TokenType.EOF, bytearray()),
+    ]
+
+
+def test_whitespace():
+    assert create_tokens_from_code("ls | select .date | sort desc") == [
         Token(TokenType.BUILTIN_COMMAND, stb("ls")),
         Token(TokenType.PIPE, stb("|")),
         Token(TokenType.BUILTIN_COMMAND, stb("select")),

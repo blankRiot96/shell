@@ -7,7 +7,7 @@ def string_to_bytearray(string: str) -> bytearray:
     return bytearray(map(ord, string))
 
 
-BUILTIN_COMMAND_NAMES = ("echo", "select", "sort", "ls")
+BUILTIN_COMMAND_NAMES = ("echo", "select", "sort", "ls", "exit", "clear")
 BUILTIN_COMMAND_NAMES = tuple(map(string_to_bytearray, BUILTIN_COMMAND_NAMES))
 
 
@@ -38,6 +38,11 @@ def create_tokens_from_code(code: str) -> list[Token]:
             queue.append(Token(TokenType.PIPE, string_to_bytearray("|")))
         elif char != " ":
             segment.append(ord(char))
+            continue
+
+        if not segment:
+            tokens.extend(queue)
+            queue.clear()
             continue
 
         if segment in BUILTIN_COMMAND_NAMES:

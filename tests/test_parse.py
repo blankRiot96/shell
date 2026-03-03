@@ -4,6 +4,7 @@ from shell.parser.ast import AST, CommandNode, PipeNode
 from shell.parser.ast import ArgumentNode as AN
 from shell.parser.ast import BuiltinCommandNode as BCN
 from shell.parser.ast import ColumnNode as CN
+from shell.parser.ast import StringLiteralNode as SLN
 from shell.parser.parse import create_ast_from_code
 
 
@@ -17,6 +18,15 @@ def test_args():
     )
     assert create_ast_from_code("select .date") == AST(
         CommandNode(BCN("select", [CN(".date", "date")]))
+    )
+    assert create_ast_from_code('echo "hii"') == AST(
+        CommandNode(BCN("echo", [SLN('"hii"', '"hii"')]))
+    )
+
+
+def test_multiple_args():
+    assert create_ast_from_code("select .name .size") == AST(
+        CommandNode(BCN("select", [CN(".name", "name"), CN(".size", "size")]))
     )
 
 

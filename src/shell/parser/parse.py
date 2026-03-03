@@ -6,6 +6,7 @@ from shell.parser.ast import (
     CommandNode,
     Node,
     PipeNode,
+    StringLiteralNode,
 )
 from shell.parser.tokenize import TokenType, create_tokens_from_code
 
@@ -16,15 +17,27 @@ def create_ast_from_code(code: str) -> AST:
 
     curr: Node | None = None
     for token in tokens[::-1][1:]:
-        if token.type in (TokenType.ARGUMENT, TokenType.COLUMN_NAME):
+        if token.type in (
+            TokenType.ARGUMENT,
+            TokenType.COLUMN_NAME,
+            TokenType.STRING_LITERAL,
+        ):
             if token.type == TokenType.ARGUMENT:
                 resultant_node = ArgumentNode(token.value.decode())
-            else:
+            elif token.type == TokenType.COLUMN_NAME:
                 resultant_node = ColumnNode(
                     token.value.decode(), token.value.decode().removeprefix(".")
                 )
+            elif token.type == TokenType.STRING_LITERAL:
+                resultant_node = StringLiteralNode(
+                    token.value.decode(), token.value.decode()
+                )
+            else:
+                raise ValueError("Invalid Argument Token")
             if curr is None:
                 curr = resultant_node
+            elif isinstance(curr, ArgumentNode):
+                curr = BuiltinCommandNode("", [curr, resultant_node])
             elif isinstance(curr, BuiltinCommandNode):
                 curr.arguments.append(resultant_node)
             elif isinstance(curr, PipeNode):
@@ -32,6 +45,10 @@ def create_ast_from_code(code: str) -> AST:
         elif token.type == TokenType.BUILTIN_COMMAND:
             if curr is None:
                 curr = BuiltinCommandNode(token.value.decode())
+            elif isinstance(curr, BuiltinCommandNode):
+                curr = BuiltinCommandNode(
+                    token.value.decode(), arguments=curr.arguments[::-1]
+                )
             elif isinstance(curr, ArgumentNode):
                 curr = BuiltinCommandNode(token.value.decode(), arguments=[curr])
             elif isinstance(curr, PipeNode):
