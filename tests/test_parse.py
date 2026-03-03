@@ -1,19 +1,37 @@
 import pytest
 
-from shell.parser.ast import AST, ModuleNode, PipeNode
+from shell.parser.ast import AST, CommandNode, PipeNode
 from shell.parser.ast import ArgumentNode as AN
 from shell.parser.ast import BuiltinCommandNode as BCN
+from shell.parser.ast import ColumnNode as CN
 from shell.parser.parse import create_ast_from_code
+
+
+def test_builtin_command_node():
+    assert create_ast_from_code("ls") == AST(CommandNode(BCN("ls")))
+
+
+def test_args():
+    assert create_ast_from_code("sort desc") == AST(
+        CommandNode(BCN("sort", [AN("desc")]))
+    )
+    assert create_ast_from_code("select .date") == AST(
+        CommandNode(BCN("select", [CN(".date", "date")]))
+    )
+
+
+def test_argless_pipe():
+    assert create_ast_from_code("ls|sort") == AST(
+        CommandNode(PipeNode(BCN("ls"), BCN("sort")))
+    )
 
 
 def test_pipes():
     assert create_ast_from_code("ls|select .date|sort desc") == AST(
-        ModuleNode(
-            [
-                PipeNode(
-                    PipeNode(BCN("ls"), BCN("select", [AN(".date")])),
-                    BCN("sort", [AN("desc")]),
-                )
-            ]
+        CommandNode(
+            PipeNode(
+                PipeNode(BCN("ls"), BCN("select", [CN(".date", "date")])),
+                BCN("sort", [AN("desc")]),
+            )
         )
     )

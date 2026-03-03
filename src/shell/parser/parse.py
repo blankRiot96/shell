@@ -1,10 +1,58 @@
-from shell.parser.ast import AST, ArgumentNode, BuiltinCommandNode, ModuleNode
+from shell.parser.ast import (
+    AST,
+    ArgumentNode,
+    BuiltinCommandNode,
+    ColumnNode,
+    CommandNode,
+    Node,
+    PipeNode,
+)
 from shell.parser.tokenize import TokenType, create_tokens_from_code
 
 
 def create_ast_from_code(code: str) -> AST:
-    ast = AST(head=ModuleNode())
+    ast = AST(root=CommandNode())
     tokens = create_tokens_from_code(code)
-    # TODO
 
+    curr: Node | None = None
+    for token in tokens[::-1][1:]:
+        if token.type in (TokenType.ARGUMENT, TokenType.COLUMN_NAME):
+            if token.type == TokenType.ARGUMENT:
+                resultant_node = ArgumentNode(token.value.decode())
+            else:
+                resultant_node = ColumnNode(
+                    token.value.decode(), token.value.decode().removeprefix(".")
+                )
+            if curr is None:
+                curr = resultant_node
+            elif isinstance(curr, BuiltinCommandNode):
+                curr.arguments.append(resultant_node)
+            elif isinstance(curr, PipeNode):
+                curr.input_node = BuiltinCommandNode("", [resultant_node])
+        elif token.type == TokenType.BUILTIN_COMMAND:
+            if curr is None:
+                curr = BuiltinCommandNode(token.value.decode())
+            elif isinstance(curr, ArgumentNode):
+                curr = BuiltinCommandNode(token.value.decode(), arguments=[curr])
+            elif isinstance(curr, PipeNode):
+                pipe_traversal_curr = curr.input_node
+                prev = curr
+                while isinstance(pipe_traversal_curr, PipeNode):
+                    prev = pipe_traversal_curr
+                    pipe_traversal_curr = pipe_traversal_curr.input_node
+
+                if pipe_traversal_curr is None:
+                    pipe_traversal_curr = BuiltinCommandNode("")
+
+                assert isinstance(pipe_traversal_curr, BuiltinCommandNode)
+                prev.input_node = BuiltinCommandNode(
+                    token.value.decode(), pipe_traversal_curr.arguments
+                )
+        elif token.type == TokenType.PIPE:
+            if isinstance(curr, BuiltinCommandNode):
+                curr = PipeNode(None, curr)
+            elif isinstance(curr, PipeNode):
+                curr = PipeNode(PipeNode(None, curr.input_node), curr.output_node)
+
+    ast.root.child = curr
     return ast

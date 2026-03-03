@@ -1,17 +1,26 @@
 import pytest
 
-from shell.parser.ast import AST, ArgumentNode, BuiltinCommandNode
+from shell.parser.ast import (
+    AST,
+    ArgumentNode,
+    BuiltinCommandNode,
+    CommandNode,
+    PipeNode,
+)
+from shell.parser.ast import ArgumentNode as AN
+from shell.parser.ast import BuiltinCommandNode as BCN
+from shell.parser.ast import ColumnNode as CN
 
 
 def test_equality():
     ast_1 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo", children=[ArgumentNode(argument_literal='"hii"')]
+        CommandNode(
+            BuiltinCommandNode("echo", [ArgumentNode(argument_literal='"hii"')])
         )
     )
     ast_2 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo", children=[ArgumentNode(argument_literal='"hii"')]
+        CommandNode(
+            BuiltinCommandNode("echo", [ArgumentNode(argument_literal='"hii"')])
         )
     )
 
@@ -20,14 +29,12 @@ def test_equality():
 
 def test_inequality():
     ast_1 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo", children=[ArgumentNode(argument_literal='"hii"')]
+        CommandNode(
+            BuiltinCommandNode("echo", [ArgumentNode(argument_literal='"hii"')])
         )
     )
     ast_2 = AST(
-        head=BuiltinCommandNode(
-            command_name="meow", children=[ArgumentNode(argument_literal='"hii"')]
-        )
+        CommandNode(BuiltinCommandNode("ls", [ArgumentNode(argument_literal='"hii"')]))
     )
 
     assert ast_1 != ast_2
@@ -35,13 +42,13 @@ def test_inequality():
 
 def test_child_inequality():
     ast_1 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo", children=[ArgumentNode(argument_literal='"hii"')]
+        CommandNode(
+            BuiltinCommandNode("echo", [ArgumentNode(argument_literal='"hii"')])
         )
     )
     ast_2 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo", children=[ArgumentNode(argument_literal='"guh"')]
+        CommandNode(
+            BuiltinCommandNode("echo", [ArgumentNode(argument_literal='"byee"')])
         )
     )
 
@@ -50,25 +57,19 @@ def test_child_inequality():
 
 def test_inner_deep_child_inequality():
     ast_1 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo",
-            children=[
-                ArgumentNode(
-                    '"hii"',
-                    children=[ArgumentNode("meow", children=[ArgumentNode("guh")])],
-                )
-            ],
+        CommandNode(
+            PipeNode(
+                PipeNode(BCN("ls"), BCN("select", [CN(".date", "date")])),
+                BCN("sort", [AN("desc")]),
+            )
         )
     )
     ast_2 = AST(
-        head=BuiltinCommandNode(
-            command_name="echo",
-            children=[
-                ArgumentNode(
-                    '"hii"',
-                    children=[ArgumentNode("meow", children=[ArgumentNode("grr")])],
-                )
-            ],
+        CommandNode(
+            PipeNode(
+                PipeNode(BCN("ls"), BCN("select", [CN(".date", "date")])),
+                BCN("echo", [AN("desc")]),
+            )
         )
     )
 
