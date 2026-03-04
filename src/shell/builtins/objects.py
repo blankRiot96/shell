@@ -1,3 +1,4 @@
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -18,6 +19,67 @@ class RawText(ShellObject):
 
     def printable_string(self) -> str:
         return self.raw_string
+
+
+@dataclass
+class Date(ShellObject):
+    year: int
+    month: int
+    day: int
+
+    @classmethod
+    def from_epoch_time(cls, epoch: float) -> Date:
+        # https://www.geeksforgeeks.org/python/how-to-get-file-creation-and-modification-date-or-time-in-python/
+        m_ti = time.ctime(epoch)
+        t_obj = time.strptime(m_ti)
+        year, month, day = map(int, time.strftime("%Y-%m-%d", t_obj).split("-"))
+        return cls(year, month, day)
+
+    def printable_string(self) -> str:
+        return f"{self.day}-{self.month}-{self.year}"
+
+
+@dataclass
+class Time(ShellObject):
+    hours: int
+    minutes: int
+    seconds: int
+
+    @classmethod
+    def from_epoch_time(cls, epoch: float) -> Time:
+        remaining_seconds = int(epoch) % 86400
+        hours = remaining_seconds // 3600
+        remaining_seconds %= 3600
+        minutes = remaining_seconds // 60
+        remaining_seconds %= 60
+        return cls(hours, minutes, remaining_seconds)
+
+    def printable_string(self) -> str:
+        attrs = (self.hours, self.minutes, self.seconds)
+
+        def left_pad(num: int) -> str:
+            """Convert '9' to '09' but let '12' stay '12'"""
+            return str(num).zfill(2)
+
+        return ":".join(map(left_pad, attrs))
+
+
+@dataclass
+class FileSize(ShellObject):
+    n_bytes: int
+
+    def printable_string(self) -> str:
+        strbytes = str(self.n_bytes)
+        if len(strbytes) > 12:
+            return f"{strbytes[:-12]} TB"
+        elif len(strbytes) > 9:
+            return f"{strbytes[:-9]} GB"
+        elif len(strbytes) > 6:
+            return f"{strbytes[:-6]} MB"
+        elif len(strbytes) > 3:
+            return f"{strbytes[:-3]} KB"
+
+        return f"{strbytes} B"
 
 
 @dataclass

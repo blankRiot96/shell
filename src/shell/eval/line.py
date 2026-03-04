@@ -26,6 +26,8 @@ def traverse_ast(curr: Node, input_object: ShellObject | None = None) -> ShellOb
             return eval_select(input_object, curr.arguments)
         elif curr.command_name == "ls":
             return eval_ls()
+        elif curr.command_name == "echo":
+            return eval_echo(curr.arguments)
         elif curr.command_name == "exit":
             run_exit()
         else:
