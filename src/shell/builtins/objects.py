@@ -97,7 +97,7 @@ class Column(ShellObject):
         )
         output_lines = [
             self.name.ljust(longest_row, " "),
-            "- " * int(longest_row / 2),
+            "-" * longest_row,
             *(obj.printable_string().ljust(longest_row, " ") for obj in self.objects),
         ]
 

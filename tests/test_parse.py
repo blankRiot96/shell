@@ -1,10 +1,8 @@
-import pytest
-
 from shell.parser.ast import AST, CommandNode, PipeNode
 from shell.parser.ast import ArgumentNode as AN
 from shell.parser.ast import BuiltinCommandNode as BCN
 from shell.parser.ast import ColumnNode as CN
-from shell.parser.ast import StringLiteralNode as SLN
+from shell.parser.ast import FlagNode as FN
 from shell.parser.parse import create_ast_from_code
 
 
@@ -20,7 +18,10 @@ def test_args():
         CommandNode(BCN("select", [CN(".date")]))
     )
     assert create_ast_from_code('echo "hii"') == AST(
-        CommandNode(BCN("echo", [SLN('"hii"', '"hii"')]))
+        CommandNode(BCN("echo", [AN("hii")]))
+    )
+    assert create_ast_from_code('echo "multiple words as one"') == AST(
+        CommandNode(BCN("echo", [AN("multiple words as one")]))
     )
 
 
@@ -53,6 +54,26 @@ def test_compound_selection():
             PipeNode(
                 PipeNode(BCN("ls"), BCN("select", [CN(".name"), CN(".size")])),
                 BCN("sort", [CN(".size")]),
+            )
+        )
+    )
+
+
+def test_flags():
+    assert create_ast_from_code(
+        'ls -a --color=yes ~/p/shell ~/t ~/ "~/my spaced folder"'
+    ) == AST(
+        CommandNode(
+            BCN(
+                "ls",
+                arguments=[
+                    FN("-a"),
+                    FN("--color=yes"),
+                    AN("~/p/shell"),
+                    AN("~/t"),
+                    AN("~/"),
+                    AN("~/my spaced folder"),
+                ],
             )
         )
     )

@@ -1,5 +1,3 @@
-import pytest
-
 from shell.parser.ast import (
     AST,
     ArgumentNode,

@@ -28,15 +28,37 @@ class ArgumentNode(Node):
     argument_literal: str
 
 
+class FlagNode(ArgumentNode):
+    def __init__(self, argument_literal: str):
+        super().__init__(argument_literal)
+
+        self.flag_value = None
+        single_dash = False
+        if not argument_literal:
+            raise ValueError("Cannot have empty flag")
+        elif argument_literal.count("-") > 2:
+            raise ValueError("Invalid flag usage. Cannot have more than 2 dashes")
+        elif argument_literal.startswith("--"):
+            self.flag_name = argument_literal.removeprefix("--")
+        elif argument_literal.startswith("-"):
+            self.flag_name = argument_literal.removeprefix("-")
+            single_dash = True
+        else:
+            raise ValueError("Invalid flag format")
+
+        equals_index = argument_literal.find("=")
+        if equals_index != -1:
+            if single_dash:
+                raise ValueError("Invalid format `-C=value`, use double dash")
+            self.flag_value = argument_literal[equals_index + 1 :]
+            if not self.flag_value:
+                raise ValueError("Invalid format `--flag=`, value is missing")
+
+
 class ColumnNode(ArgumentNode):
     def __init__(self, argument_literal: str):
         super().__init__(argument_literal)
         self.column_name = argument_literal.removeprefix(".")
-
-
-@dataclass
-class StringLiteralNode(ArgumentNode):
-    string_literal: str
 
 
 @dataclass

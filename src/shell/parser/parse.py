@@ -4,9 +4,9 @@ from shell.parser.ast import (
     BuiltinCommandNode,
     ColumnNode,
     CommandNode,
+    FlagNode,
     Node,
     PipeNode,
-    StringLiteralNode,
 )
 from shell.parser.tokenize import TokenType, create_tokens_from_code
 
@@ -20,16 +20,18 @@ def create_ast_from_code(code: str) -> AST:
         if token.type in (
             TokenType.ARGUMENT,
             TokenType.COLUMN_NAME,
-            TokenType.STRING_LITERAL,
+            TokenType.DOUBLE_DASH_FLAGS,
+            TokenType.SINGLE_DASH_FLAGS,
         ):
             if token.type == TokenType.ARGUMENT:
                 resultant_node = ArgumentNode(token.value.decode())
             elif token.type == TokenType.COLUMN_NAME:
                 resultant_node = ColumnNode(token.value.decode())
-            elif token.type == TokenType.STRING_LITERAL:
-                resultant_node = StringLiteralNode(
-                    token.value.decode(), token.value.decode()
-                )
+            elif token.type in (
+                TokenType.DOUBLE_DASH_FLAGS,
+                TokenType.SINGLE_DASH_FLAGS,
+            ):
+                resultant_node = FlagNode(token.value.decode())
             else:
                 raise ValueError("Invalid Argument Token")
             if curr is None:
