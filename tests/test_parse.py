@@ -17,7 +17,7 @@ def test_args():
         CommandNode(BCN("sort", [AN("desc")]))
     )
     assert create_ast_from_code("select .date") == AST(
-        CommandNode(BCN("select", [CN(".date", "date")]))
+        CommandNode(BCN("select", [CN(".date")]))
     )
     assert create_ast_from_code('echo "hii"') == AST(
         CommandNode(BCN("echo", [SLN('"hii"', '"hii"')]))
@@ -26,7 +26,7 @@ def test_args():
 
 def test_multiple_args():
     assert create_ast_from_code("select .name .size") == AST(
-        CommandNode(BCN("select", [CN(".name", "name"), CN(".size", "size")]))
+        CommandNode(BCN("select", [CN(".name"), CN(".size")]))
     )
 
 
@@ -40,8 +40,19 @@ def test_pipes():
     assert create_ast_from_code("ls|select .date|sort desc") == AST(
         CommandNode(
             PipeNode(
-                PipeNode(BCN("ls"), BCN("select", [CN(".date", "date")])),
+                PipeNode(BCN("ls"), BCN("select", [CN(".date")])),
                 BCN("sort", [AN("desc")]),
+            )
+        )
+    )
+
+
+def test_compound_selection():
+    assert create_ast_from_code("ls | select .name .size | sort .size") == AST(
+        CommandNode(
+            PipeNode(
+                PipeNode(BCN("ls"), BCN("select", [CN(".name"), CN(".size")])),
+                BCN("sort", [CN(".size")]),
             )
         )
     )

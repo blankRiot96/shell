@@ -59,7 +59,7 @@ def test_inner_deep_child_inequality():
     ast_1 = AST(
         CommandNode(
             PipeNode(
-                PipeNode(BCN("ls"), BCN("select", [CN(".date", "date")])),
+                PipeNode(BCN("ls"), BCN("select", [CN(".date")])),
                 BCN("sort", [AN("desc")]),
             )
         )
@@ -67,7 +67,7 @@ def test_inner_deep_child_inequality():
     ast_2 = AST(
         CommandNode(
             PipeNode(
-                PipeNode(BCN("ls"), BCN("select", [CN(".date", "date")])),
+                PipeNode(BCN("ls"), BCN("select", [CN(".date")])),
                 BCN("echo", [AN("desc")]),
             )
         )

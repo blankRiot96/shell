@@ -12,8 +12,8 @@ def eval_select(input_table: Table, arguments: list[ArgumentNode]) -> Table | Co
         raise ValueError("Need to select at least one column")
 
     result_columns: list[Column] = []
-    for col in input_table.columns:
-        for arg in arguments:
+    for arg in arguments:
+        for col in input_table.columns:
             if isinstance(arg, ColumnNode):
                 if arg.column_name == col.name:
                     result_columns.append(col)

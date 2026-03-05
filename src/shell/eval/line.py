@@ -2,8 +2,9 @@ from shell.builtins.clear_command import eval_clear
 from shell.builtins.echo_command import eval_echo
 from shell.builtins.exit_command import run_exit
 from shell.builtins.ls_command import eval_ls
-from shell.builtins.objects import ShellObject, Table
+from shell.builtins.objects import Column, ShellObject, Table
 from shell.builtins.select_command import eval_select
+from shell.builtins.sort_command import eval_sort
 from shell.parser.ast import (
     ArgumentNode,
     BuiltinCommandNode,
@@ -24,6 +25,9 @@ def traverse_ast(curr: Node, input_object: ShellObject | None = None) -> ShellOb
         if curr.command_name == "select":
             assert isinstance(input_object, Table)
             return eval_select(input_object, curr.arguments)
+        elif curr.command_name == "sort":
+            assert isinstance(input_object, Table) or isinstance(input_object, Column)
+            return eval_sort(input_object, curr.arguments)
         elif curr.command_name == "ls":
             return eval_ls()
         elif curr.command_name == "echo":
@@ -46,4 +50,5 @@ def traverse_ast(curr: Node, input_object: ShellObject | None = None) -> ShellOb
 
 def evaluate_line(line: str) -> ShellObject:
     ast = create_ast_from_code(line)
+    print(ast)
     return traverse_ast(ast.root)

@@ -28,9 +28,10 @@ class ArgumentNode(Node):
     argument_literal: str
 
 
-@dataclass
 class ColumnNode(ArgumentNode):
-    column_name: str
+    def __init__(self, argument_literal: str):
+        super().__init__(argument_literal)
+        self.column_name = argument_literal.removeprefix(".")
 
 
 @dataclass

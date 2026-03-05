@@ -25,9 +25,7 @@ def create_ast_from_code(code: str) -> AST:
             if token.type == TokenType.ARGUMENT:
                 resultant_node = ArgumentNode(token.value.decode())
             elif token.type == TokenType.COLUMN_NAME:
-                resultant_node = ColumnNode(
-                    token.value.decode(), token.value.decode().removeprefix(".")
-                )
+                resultant_node = ColumnNode(token.value.decode())
             elif token.type == TokenType.STRING_LITERAL:
                 resultant_node = StringLiteralNode(
                     token.value.decode(), token.value.decode()
@@ -41,7 +39,10 @@ def create_ast_from_code(code: str) -> AST:
             elif isinstance(curr, BuiltinCommandNode):
                 curr.arguments.append(resultant_node)
             elif isinstance(curr, PipeNode):
-                curr.input_node = BuiltinCommandNode("", [resultant_node])
+                if curr.input_node is None:
+                    curr.input_node = BuiltinCommandNode("", [resultant_node])
+                elif isinstance(curr.input_node, BuiltinCommandNode):
+                    curr.input_node.arguments.append(resultant_node)
         elif token.type == TokenType.BUILTIN_COMMAND:
             if curr is None:
                 curr = BuiltinCommandNode(token.value.decode())
@@ -63,7 +64,7 @@ def create_ast_from_code(code: str) -> AST:
 
                 assert isinstance(pipe_traversal_curr, BuiltinCommandNode)
                 prev.input_node = BuiltinCommandNode(
-                    token.value.decode(), pipe_traversal_curr.arguments
+                    token.value.decode(), pipe_traversal_curr.arguments[::-1]
                 )
         elif token.type == TokenType.PIPE:
             if isinstance(curr, BuiltinCommandNode):
