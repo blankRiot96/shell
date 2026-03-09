@@ -3,4 +3,4 @@ from shell.parser.ast import ArgumentNode
 
 
 def eval_echo(arguments: list[ArgumentNode]) -> RawText:
-    return RawText(" ".join((arg.argument_literal for arg in arguments)))
+    return RawText(" ".join((arg.printable_string() for arg in arguments)))

@@ -7,17 +7,22 @@ def string_to_bytearray(string: str) -> bytearray:
     return bytearray(map(ord, string))
 
 
-BUILTIN_COMMAND_NAMES = ("echo", "select", "sort", "ls", "exit", "clear")
-BUILTIN_COMMAND_NAMES = tuple(map(string_to_bytearray, BUILTIN_COMMAND_NAMES))
+BUILTIN_COMMAND_NAMES = (b"echo", b"select", b"sort", b"ls", b"exit", b"clear")
+KEYWORDS = (b"let",)
 
 
 class TokenType(Enum):
+    KEYWORD = auto()
     BUILTIN_COMMAND = auto()
     COLUMN_NAME = auto()
     SINGLE_DASH_FLAGS = auto()
     DOUBLE_DASH_FLAGS = auto()
     ARGUMENT = auto()
     PIPE = auto()
+    ASSIGNMENT_EQUALS = auto()
+    IDENTIFIER = auto()
+    STRING_LITERAL = auto()
+    VARIABLE = auto()
 
     EOF = auto()
 
@@ -35,15 +40,19 @@ def create_tokens_from_code(code: str) -> list[Token]:
     string_started = False
     for char in code + " ":
         if string_started:
+            segment.append(ord(char))
             if char == '"':
                 string_started = False
                 continue
-            segment.append(ord(char))
             continue
         elif char == '"':
+            segment.append(ord(char))
             string_started = True
+            continue
         elif char == "|":
             queue.append(Token(TokenType.PIPE, string_to_bytearray("|")))
+        elif char == "=" and len(tokens) >= 1 and tokens[-1].type == TokenType.KEYWORD:
+            queue.append(Token(TokenType.ASSIGNMENT_EQUALS, string_to_bytearray("=")))
         elif char != " ":
             segment.append(ord(char))
             continue
@@ -55,16 +64,34 @@ def create_tokens_from_code(code: str) -> list[Token]:
 
         if (
             segment in BUILTIN_COMMAND_NAMES
-            and (not tokens or tokens[-1].type == TokenType.PIPE)
+            and (
+                not tokens
+                or tokens[-1].type == TokenType.PIPE
+                or tokens[-1].type == TokenType.ASSIGNMENT_EQUALS
+            )
         ):  # TODO: This is a bit janky... basically only allowing commands to be in the position
             # of the first token. Only two patterns allowed:
             # `<command> ...` or `<command> ... | <command> ...`
             tokens.append(Token(TokenType.BUILTIN_COMMAND, segment))
+        elif segment in KEYWORDS:
+            tokens.append(Token(TokenType.KEYWORD, segment))
+        elif tokens and tokens[-1].type == TokenType.KEYWORD:
+            if tokens[-1].value == b"let":
+                tokens.append(Token(TokenType.IDENTIFIER, segment))
+        elif segment == b"=":
+            tokens.append(Token(TokenType.ASSIGNMENT_EQUALS, segment))
         elif segment.startswith(b'"'):
-            tokens.append(
-                Token(TokenType.ARGUMENT, segment.removeprefix(b'"').removesuffix(b'"'))
-            )
-            continue
+            if tokens and tokens[-1].type == TokenType.ASSIGNMENT_EQUALS:
+                tokens.append(Token(TokenType.STRING_LITERAL, segment))
+            else:
+                tokens.append(
+                    Token(
+                        TokenType.ARGUMENT,
+                        segment.removeprefix(b'"').removesuffix(b'"'),
+                    )
+                )
+        elif segment.startswith(b"$"):
+            tokens.append(Token(TokenType.VARIABLE, segment))
         elif segment.startswith(b"."):
             tokens.append(Token(TokenType.COLUMN_NAME, segment))
         elif segment.startswith(b"--"):

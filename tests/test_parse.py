@@ -1,8 +1,10 @@
-from shell.parser.ast import AST, CommandNode, PipeNode
+from shell.parser.ast import AST, AssignmentNode, CommandNode, PipeNode
 from shell.parser.ast import ArgumentNode as AN
 from shell.parser.ast import BuiltinCommandNode as BCN
 from shell.parser.ast import ColumnNode as CN
 from shell.parser.ast import FlagNode as FN
+from shell.parser.ast import StringLiteralNode as SLN
+from shell.parser.ast import VariableNode as VN
 from shell.parser.parse import create_ast_from_code
 
 
@@ -76,4 +78,30 @@ def test_flags():
                 ],
             )
         )
+    )
+
+
+def test_assignment():
+    assert create_ast_from_code('let x = "meow"') == AST(
+        CommandNode(AssignmentNode("x", SLN('"meow"')))
+    )
+
+    assert create_ast_from_code(
+        "let result = ls | select .name .size | sort .size"
+    ) == AST(
+        CommandNode(
+            AssignmentNode(
+                "result",
+                PipeNode(
+                    PipeNode(BCN("ls"), BCN("select", [CN(".name"), CN(".size")])),
+                    BCN("sort", [CN(".size")]),
+                ),
+            )
+        )
+    )
+
+
+def test_variable_invocation():
+    assert create_ast_from_code("echo $result") == AST(
+        CommandNode(BCN("echo", [VN("$result")]))
     )

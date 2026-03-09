@@ -9,4 +9,8 @@ def start_repl_session():
 
     while True:
         line = input(f"{getpass.getuser()}:{cwd}$ ")
-        print(evaluate_line(line).printable_string())
+        result = evaluate_line(line)
+        try:
+            print(result.printable_string())
+        except NotImplementedError:
+            pass

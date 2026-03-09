@@ -116,3 +116,12 @@ class Table(ShellObject):
             output_lines.append(" | ".join(lines))
 
         return "\n".join(output_lines)
+
+
+@dataclass
+class AssignmentResult(ShellObject):
+    key: str
+    value: ShellObject
+
+    def printable_string(self) -> str:
+        raise NotImplementedError

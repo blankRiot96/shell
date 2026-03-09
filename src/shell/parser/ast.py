@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+
+from shell.mutable_tables import variable_table
 
 
 class Node(ABC):
@@ -24,8 +26,32 @@ class CommandNode(Node):
 
 
 @dataclass
+class AssignmentNode(Node):
+    identifier_name: str
+    assigned_node: Node
+
+
+@dataclass
+class StringLiteralNode(Node):
+    text: str
+
+
+@dataclass
 class ArgumentNode(Node):
     argument_literal: str
+
+    def printable_string(self) -> str:
+        return self.argument_literal
+
+
+@dataclass
+class VariableNode(ArgumentNode):
+    def __init__(self, argument_literal: str):
+        super().__init__(argument_literal)
+        self.identifier_name = argument_literal.removeprefix("$")
+
+    def printable_string(self) -> str:
+        return variable_table[self.identifier_name].printable_string()
 
 
 class FlagNode(ArgumentNode):

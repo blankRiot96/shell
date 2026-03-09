@@ -2,11 +2,13 @@ from shell.builtins.clear_command import eval_clear
 from shell.builtins.echo_command import eval_echo
 from shell.builtins.exit_command import run_exit
 from shell.builtins.ls_command import eval_ls
-from shell.builtins.objects import Column, ShellObject, Table
+from shell.builtins.objects import AssignmentResult, Column, RawText, ShellObject, Table
 from shell.builtins.select_command import eval_select
 from shell.builtins.sort_command import eval_sort
+from shell.mutable_tables import variable_table
 from shell.parser.ast import (
     ArgumentNode,
+    AssignmentNode,
     BuiltinCommandNode,
     ColumnNode,
     CommandNode,
@@ -18,7 +20,13 @@ from shell.parser.parse import create_ast_from_code
 
 
 def traverse_ast(curr: Node, input_object: ShellObject | None = None) -> ShellObject:
-    if isinstance(curr, CommandNode):
+    if isinstance(curr, AssignmentNode):
+        output = traverse_ast(curr.assigned_node)
+        variable_table[curr.identifier_name] = output
+        return AssignmentResult(curr.identifier_name, output)
+    elif isinstance(curr, StringLiteralNode):
+        return RawText(curr.text.removeprefix('"').removesuffix('"'))
+    elif isinstance(curr, CommandNode):
         assert curr.child is not None
         return traverse_ast(curr.child)
     elif isinstance(curr, BuiltinCommandNode):
@@ -50,5 +58,4 @@ def traverse_ast(curr: Node, input_object: ShellObject | None = None) -> ShellOb
 
 def evaluate_line(line: str) -> ShellObject:
     ast = create_ast_from_code(line)
-    print(ast)
     return traverse_ast(ast.root)

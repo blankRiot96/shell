@@ -1,12 +1,15 @@
 from shell.parser.ast import (
     AST,
     ArgumentNode,
+    AssignmentNode,
     BuiltinCommandNode,
     ColumnNode,
     CommandNode,
     FlagNode,
     Node,
     PipeNode,
+    StringLiteralNode,
+    VariableNode,
 )
 from shell.parser.tokenize import TokenType, create_tokens_from_code
 
@@ -17,7 +20,17 @@ def create_ast_from_code(code: str) -> AST:
 
     curr: Node | None = None
     for token in tokens[::-1][1:]:
-        if token.type in (
+        if token.type == TokenType.STRING_LITERAL:
+            curr = StringLiteralNode(token.value.decode())
+        elif token.type == TokenType.IDENTIFIER:
+            assert isinstance(curr, AssignmentNode)
+            curr.identifier_name = token.value.decode()
+        elif token.type == TokenType.VARIABLE:
+            curr = VariableNode(token.value.decode())
+        elif token.type == TokenType.ASSIGNMENT_EQUALS:
+            assert curr is not None
+            curr = AssignmentNode("", curr)
+        elif token.type in (
             TokenType.ARGUMENT,
             TokenType.COLUMN_NAME,
             TokenType.DOUBLE_DASH_FLAGS,
