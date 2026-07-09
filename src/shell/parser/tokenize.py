@@ -7,7 +7,7 @@ def string_to_bytearray(string: str) -> bytearray:
     return bytearray(map(ord, string))
 
 
-BUILTIN_COMMAND_NAMES = (b"echo", b"select", b"sort", b"ls", b"exit", b"clear")
+BUILTIN_COMMAND_NAMES = (b"echo", b"select", b"sort", b"ls", b"exit", b"clear", b"max")
 KEYWORDS = (b"let",)
 
 

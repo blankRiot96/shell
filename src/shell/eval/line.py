@@ -2,6 +2,7 @@ from shell.builtins.clear_command import eval_clear
 from shell.builtins.echo_command import eval_echo
 from shell.builtins.exit_command import run_exit
 from shell.builtins.ls_command import eval_ls
+from shell.builtins.max_command import eval_max
 from shell.builtins.objects import AssignmentResult, Column, RawText, ShellObject, Table
 from shell.builtins.select_command import eval_select
 from shell.builtins.sort_command import eval_sort
@@ -36,10 +37,15 @@ def traverse_ast(curr: Node, input_object: ShellObject | None = None) -> ShellOb
         elif curr.command_name == "sort":
             assert isinstance(input_object, Table) or isinstance(input_object, Column)
             return eval_sort(input_object, curr.arguments)
+        elif curr.command_name == "max":
+            assert isinstance(input_object, Column) or isinstance(input_object, Table)
+            return eval_max(input_object, curr.arguments)
         elif curr.command_name == "ls":
             return eval_ls()
         elif curr.command_name == "echo":
             return eval_echo(curr.arguments)
+        elif curr.command_name == "clear":
+            return eval_clear()
         elif curr.command_name == "exit":
             run_exit()
         else:
